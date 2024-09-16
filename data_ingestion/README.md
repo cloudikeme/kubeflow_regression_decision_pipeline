@@ -1,6 +1,8 @@
 # Step 1: Data Ingestion Step
 
-When you're just getting started with Python, the idea of working with data ingestion can seem daunting. But don't worry! We'll walk you through this simple Python script step-by-step. The code we're looking at ingests data from the popular *scikit-learn* library, processes it, and saves it as a JSON file. Let's break it down together.
+The code we're looking at ingests data from the popular *scikit-learn* library, processes it, and saves it as a JSON file. Let's break it down together.
+
+## Create data_ingestion.py
 
 ### **Table of Contents**
 
@@ -180,3 +182,48 @@ JSON is a lightweight and easy-to-read format that's widely used for data storag
 ---
 
 This breakdown should make the data ingestion code much clearer and easier to understand for beginners. Now, you can run the script and start experimenting with it!
+
+## Create data_ingestion.yaml
+
+Here, we will be defining a component for a Kubeflow pipeline that downloads a demo dataset from the `sklearn` library, specifically the breast cancer dataset. Let's break down what you have and explain it in simple terms.
+
+---
+
+### **Component Breakdown: Download Data Function**
+
+**Name:** `Download Data Function`  
+**Description:** This function downloads demo data from the `sklearn` datasets and stores it locally for further use in machine learning workflows.
+
+#### **Outputs:**
+- **Data:**
+  - **Type:** `LocalPath`
+  - **Description:** This is the path where the dataset will be stored after it has been downloaded and processed.
+
+#### **Implementation:**
+- **Container:**
+  - **Image:** `omerbsezer/kubeflow_component:download_breast_cancer_data_v1`
+    - This Docker image contains the environment necessary to execute the code for downloading the breast cancer dataset.
+  - **Command:**
+    - The command will run the `download_data.py` Python script.
+    - `--data`: The flag specifies the output path where the dataset will be saved. This path is dynamically generated during pipeline execution and is passed as `{outputPath: Data}`.
+
+---
+
+### **How It Works:**
+
+1. **Container Execution**:
+   - The component will use a pre-built Docker container (`omerbsezer/kubeflow_component:download_breast_cancer_data_v1`) that already has the necessary dependencies and script (`download_data.py`) for downloading the dataset.
+  
+2. **Command**:
+   - The `python download_data.py` command will be executed inside the container.
+   - The `--data` flag specifies where the data should be saved. The `{outputPath: Data}` placeholder represents the path where the Kubeflow pipeline expects the output dataset to be stored.
+
+3. **Output**:
+   - The dataset is saved at the location specified by the `Data` output, which can be used by other components in the pipeline for further processing, such as model training.
+
+### **Summary**
+
+This component will automate the process of downloading and saving the breast cancer dataset from `sklearn`. By specifying the `LocalPath` for the output, the component ensures that other parts of the pipeline can easily access the dataset for their respective tasks, like training machine learning models or analyzing the data. 
+
+
+## 

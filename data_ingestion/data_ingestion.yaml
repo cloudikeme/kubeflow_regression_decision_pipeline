@@ -1,0 +1,23 @@
+name: download-breast-cancer-data
+description: Download and preprocess breast cancer dataset from scikit-learn
+inputs:
+  - {name: test_size, type: Float, default: 0.2, description: 'Proportion of dataset to include in test split'}
+  - {name: random_state, type: Integer, default: 42, description: 'Random state for reproducibility'}
+outputs:
+  - {name: processed_data, type: LocalPath, description: 'Path where processed data will be stored'}
+implementation:
+  container:
+    image: omerbsezer/kubeflow_component:download_breast_cancer_data_v2
+    command:
+      - python
+      - -u
+      - data_ingestion.py
+      - --data
+      - {outputPath: processed_data}
+      - --test-size
+      - {inputValue: test_size}
+      - --random-state
+      - {inputValue: random_state}
+    resources:
+      cpu: 1
+      memory: 2Gi
