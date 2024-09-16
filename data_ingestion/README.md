@@ -226,4 +226,92 @@ Here, we will be defining a component for a Kubeflow pipeline that downloads a d
 This component will automate the process of downloading and saving the breast cancer dataset from `sklearn`. By specifying the `LocalPath` for the output, the component ensures that other parts of the pipeline can easily access the dataset for their respective tasks, like training machine learning models or analyzing the data. 
 
 
-## 
+## Create requirements file (requirements.txt)
+
+```bash
+scikit-learn
+```
+
+## Create Dockerfile
+
+Thank you for sharing that Dockerfile. I can help you optimize it to create a more efficient and secure container image for your data download script. Let's improve it step by step.
+
+
+
+```dockerfile
+# Use a specific version of Python for better reproducibility
+FROM python:3.8.16-slim-buster
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# Set the working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy only the requirements file first to leverage Docker cache
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the script
+COPY download_data.py .
+
+# Run as non-root user for better security
+RUN useradd -m appuser
+USER appuser
+
+# Set the entrypoint
+ENTRYPOINT ["python", "download_data.py"]
+
+```
+
+Here are the key optimizations and improvements made to the Dockerfile:
+
+1. Base Image: Specified a precise version of Python (3.8.16) for better reproducibility.
+
+2. Environment Variables: 
+   - Set `PYTHONDONTWRITEBYTECODE` to prevent Python from writing pyc files.
+   - Set `PYTHONUNBUFFERED` to ensure Python output is sent straight to terminal without buffering.
+
+3. Working Directory: Changed from `/pipeline` to `/app`, which is a more standard name.
+
+4. System Dependencies: Added an apt-get update and install for gcc, which might be needed for some Python packages. The `--no-install-recommends` flag keeps the image size down.
+
+5. Dependency Installation: 
+   - Copied only the requirements file first, then installed dependencies. This leverages Docker's cache mechanism for faster builds when only the script changes.
+   - Used `--no-cache-dir` with pip to keep the image size down.
+
+6. Script Copy: Copied the script after installing dependencies, again for better use of Docker's cache.
+
+7. User Creation: Created a non-root user `appuser` and switched to it for running the script. This improves security.
+
+8. Entrypoint: Set an ENTRYPOINT instead of leaving it to be specified in the Kubernetes YAML. This makes the image more self-contained.
+
+These optimizations result in a more efficient, secure, and reproducible Docker image. The image will be smaller, build faster when only the script changes, and run with least privilege.
+
+To use this Dockerfile:
+
+1. Ensure your `requirements.txt` file is up to date with all necessary dependencies.
+2. Place this Dockerfile in the same directory as your `requirements.txt` and `download_data.py` files.
+3. Build the Docker image with a command like:
+   ```
+   docker build -t your-registry/kubeflow_component:download_breast_cancer_data_v2 .
+   ```
+   ```
+   docker image build -t cloudikeme/kubeflow_component:ingest_breast_cancer_data_v2 .
+   ```
+4. Push the image to your container registry:
+   ```
+   docker push cloudikeme/kubeflow_component:ingest_breast_cancer_data_v1
+   ```
+
+5. Update your Kubeflow component YAML to use this new image.
+
+This optimized Dockerfile should work well with the previously optimized Python script and Kubeflow component YAML.
