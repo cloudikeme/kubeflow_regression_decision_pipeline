@@ -309,7 +309,7 @@ To use this Dockerfile:
    ```
 4. Push the image to your container registry:
    ```
-   docker push cloudikeme/kubeflow_component:ingest_breast_cancer_data_v1
+   docker push cloudikeme/kubeflow_component:ingest_breast_cancer_data_v2
    ```
 
 5. Update your Kubeflow component YAML to use this new image.
